@@ -15,6 +15,7 @@ mod panic_handler;
 mod parameter_attributes;
 mod raw_identifiers;
 mod response_with_reply;
+mod subcommand_required;
 mod subcommands;
 mod track_edits;
 
@@ -42,6 +43,7 @@ async fn main() {
                 checks::delete(),
                 checks::ferrisparty(),
                 checks::cooldowns(),
+                checks::dynamic_cooldowns(),
                 checks::minmax(),
                 checks::get_guild_name(),
                 checks::only_in_dms(),
@@ -55,6 +57,7 @@ async fn main() {
                 inherit_checks::parent_checks(),
                 localization::welcome(),
                 modal::modal(),
+                modal::component_modal(),
                 paginate::paginate(),
                 panic_handler::div(),
                 parameter_attributes::addmultiple(),
@@ -65,6 +68,7 @@ async fn main() {
                 // raw_identifiers::r#move(), // Currently doesn't work (issue #170)
                 response_with_reply::reply(),
                 subcommands::parent(),
+                subcommand_required::parent_subcommand_required(),
                 track_edits::test_reuse_response(),
                 track_edits::add(),
             ],

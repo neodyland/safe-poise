@@ -34,15 +34,12 @@ pub struct CooldownConfig {
     pub __non_exhaustive: (),
 }
 
-/// Handles cooldowns for a single command
+/// Tracks all types of cooldowns for a single command
 ///
 /// You probably don't need to use this directly. `#[poise::command]` automatically generates a
 /// cooldown handler.
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
-pub struct Cooldowns {
-    /// Stores the cooldown durations
-    cooldown: CooldownConfig,
-
+pub struct CooldownTracker {
     /// Stores the timestamp of the last global invocation
     global_invocation: Option<Instant>,
     /// Stores the timestamps of the last invocation per user
@@ -55,12 +52,13 @@ pub struct Cooldowns {
     member_invocations: HashMap<(serenity::UserId, serenity::GuildId), Instant>,
 }
 
-impl Cooldowns {
-    /// Create a new cooldown handler with the given cooldown durations
-    pub fn new(config: CooldownConfig) -> Self {
-        Self {
-            cooldown: config,
+/// **Renamed to [`CooldownTracker`]**
+pub use CooldownTracker as Cooldowns;
 
+impl CooldownTracker {
+    /// Create a new cooldown tracker
+    pub fn new() -> Self {
+        Self {
             global_invocation: None,
             user_invocations: HashMap::new(),
             guild_invocations: HashMap::new(),
@@ -71,26 +69,30 @@ impl Cooldowns {
 
     /// Queries the cooldown buckets and checks if all cooldowns have expired and command
     /// execution may proceed. If not, Some is returned with the remaining cooldown
-    pub fn remaining_cooldown(&self, ctx: CooldownContext) -> Option<Duration> {
+    pub fn remaining_cooldown(
+        &self,
+        ctx: CooldownContext,
+        cooldown_durations: &CooldownConfig,
+    ) -> Option<Duration> {
         let mut cooldown_data = vec![
-            (self.cooldown.global, self.global_invocation),
+            (cooldown_durations.global, self.global_invocation),
             (
-                self.cooldown.user,
+                cooldown_durations.user,
                 self.user_invocations.get(&ctx.user_id).copied(),
             ),
             (
-                self.cooldown.channel,
+                cooldown_durations.channel,
                 self.channel_invocations.get(&ctx.channel_id).copied(),
             ),
         ];
 
         if let Some(guild_id) = ctx.guild_id {
             cooldown_data.push((
-                self.cooldown.guild,
+                cooldown_durations.guild,
                 self.guild_invocations.get(&guild_id).copied(),
             ));
             cooldown_data.push((
-                self.cooldown.member,
+                cooldown_durations.member,
                 self.member_invocations
                     .get(&(ctx.user_id, guild_id))
                     .copied(),
